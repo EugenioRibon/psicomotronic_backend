@@ -17,17 +17,17 @@ class Auction(models.Model):
     '''Modelo de subasta'''
 
 
-    title = models.CharField(max_length=150) # Título
-    description = models.TextField() # Descripción
-    closing_date = models.DateTimeField() # Fecha límie para su cierre
-    creation_date = models.DateTimeField() # Fecha de creación
-    thumbnail = models.URLField() # Campo de imagen
-    price = models.DecimalField(max_digits=10, decimal_places=2) # Precio de salida
-    stock = models.IntegerField() # Stock
-    rating = models.DecimalField(max_digits=3, decimal_places=2) # Valoración
-    category = models.ForeignKey(Category, related_name='subastas', on_delete=models.CASCADE) # Categoría
-    brand = models.CharField(max_length=100) # Marca
-    auctioneer = models.ForeignKey(CustomUser, related_name='auctions', on_delete=models.CASCADE) # Usuario que crea la subasta
+    title = models.CharField(max_length=150)
+    description = models.TextField() 
+    closing_date = models.DateTimeField()
+    creation_date = models.DateTimeField() 
+    thumbnail = models.URLField() 
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.IntegerField() 
+    rating = models.DecimalField(max_digits=3, decimal_places=2) 
+    category = models.ForeignKey(Category, related_name='subastas', on_delete=models.CASCADE)
+    brand = models.CharField(max_length=100) 
+    auctioneer = models.ForeignKey(CustomUser, related_name='auctions', on_delete=models.CASCADE)
 
     class Meta:
         ordering=('id',) 
@@ -40,7 +40,7 @@ class Bid(models.Model):
     
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # Aquí usamos CustomUser
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  
     auction = models.ForeignKey(Auction, related_name='pujas', on_delete=models.CASCADE)
 
     class Meta:
