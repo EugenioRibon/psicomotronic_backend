@@ -3,7 +3,7 @@ from subastas.models import Category, Auction, Bid
 from django.utils import timezone
 from datetime import timedelta
 
-# Crear usuarios
+# Crear usuarios (get_or_create evita duplicados)
 usuarios = [
     {
         "username": "UsuarioNuevo1",
@@ -38,7 +38,9 @@ usuarios = [
 ]
 
 for u in usuarios:
-    CustomUser.objects.create_user(**u)
+    user, created = CustomUser.objects.get_or_create(username=u["username"], defaults=u)
+    if not created:
+        print(f"Usuario {u['username']} ya existe, no se creó de nuevo.")
 
 # Crear categorías
 category_luxury, _ = Category.objects.get_or_create(name='lujo')
@@ -128,21 +130,28 @@ subastas = [
 ]
 
 for s in subastas:
-    Auction.objects.create(
-        **s,
-        closing_date=timezone.now() + timedelta(days=30),
-        creation_date=timezone.now(),
-        auctioneer=auctioneer
+    Auction.objects.get_or_create(
+        title=s["title"],
+        defaults={**s,
+                  "closing_date": timezone.now() + timedelta(days=30),
+                  "creation_date": timezone.now(),
+                  "auctioneer": auctioneer}
     )
 
-# Crear pujas
-pruebas2 = CustomUser.objects.get(username="UsuarioNuevo1")
-pruebas3 = CustomUser.objects.get(username="UsuarioNuevo2")
+# Crear pujas solo si no existen
+try:
+    pruebas2 = CustomUser.objects.get(username="UsuarioNuevo1")
+    pruebas3 = CustomUser.objects.get(username="UsuarioNuevo2")
 
-Bid.objects.create(auction=Auction.objects.get(id=1), user=pruebas2, amount=500)
-Bid.objects.create(auction=Auction.objects.get(id=2), user=pruebas2, amount=650)
-Bid.objects.create(auction=Auction.objects.get(id=3), user=pruebas2, amount=900)
+    if not Bid.objects.filter(user=pruebas2).exists():
+        Bid.objects.create(auction=Auction.objects.get(title="Rolex Submariner"), user=pruebas2, amount=500)
+        Bid.objects.create(auction=Auction.objects.get(title="Omega Speedmaster Moonwatch"), user=pruebas2, amount=650)
+        Bid.objects.create(auction=Auction.objects.get(title="Garmin Fenix 7X Pro"), user=pruebas2, amount=900)
 
-Bid.objects.create(auction=Auction.objects.get(id=2), user=pruebas3, amount=700)
-Bid.objects.create(auction=Auction.objects.get(id=3), user=pruebas3, amount=950)
-Bid.objects.create(auction=Auction.objects.get(id=4), user=pruebas3, amount=1200)
+    if not Bid.objects.filter(user=pruebas3).exists():
+        Bid.objects.create(auction=Auction.objects.get(title="Omega Speedmaster Moonwatch"), user=pruebas3, amount=700)
+        Bid.objects.create(auction=Auction.objects.get(title="Garmin Fenix 7X Pro"), user=pruebas3, amount=950)
+        Bid.objects.create(auction=Auction.objects.get(title="Apple Watch Series 9"), user=pruebas3, amount=1200)
+
+except CustomUser.DoesNotExist:
+    print("Alguno de los usuarios de prueba no fue encontrado.")
