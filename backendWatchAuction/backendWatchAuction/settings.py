@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 from datetime import timedelta
 from pathlib import Path
-
+import os
+import dj_database_url
+from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +27,7 @@ SECRET_KEY = "django-insecure-65*65oz13!(myshy%+mu+j2r+lsoai31f-g864hd9d_vjjcnyf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1","@dpg-d0j0kgjuibrs73f4gcj0-a.virginia-postgres.render.com"]
 
 
 # Application definition
@@ -81,11 +83,9 @@ WSGI_APPLICATION = "backendWatchAuction.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+load_dotenv()
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+'default': dj_database_url.config(default=os.getenv("DATABASE_URL"))
 }
 
 
