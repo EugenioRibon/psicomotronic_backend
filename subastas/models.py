@@ -21,7 +21,7 @@ class Auction(models.Model):
     description = models.TextField() 
     closing_date = models.DateTimeField()
     creation_date = models.DateTimeField(auto_now_add=True)
-    thumbnail = models.URLField() 
+    thumbnail = models.URLField(max_length=1000) 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField() 
     category = models.ForeignKey(Category, related_name='subastas', on_delete=models.CASCADE)
