@@ -1,4 +1,10 @@
-data = [
+from users.models import CustomUser
+from subastas.models import Category, Auction, Bid
+from django.utils import timezone
+from datetime import timedelta
+
+# Crear usuarios
+usuarios = [
     {
         "username": "UsuarioNuevo1",
         "first_name": "Alberto",
@@ -31,142 +37,112 @@ data = [
     }
 ]
 
+for u in usuarios:
+    CustomUser.objects.create_user(**u)
 
-from your_app.models import CustomUser
-from users.models import CustomUser
-from django.utils import timezone
-
-for item in data:
-    user = CustomUser.objects.create_user(
-        username=item["username"],
-        first_name=item["first_name"],
-        last_name=item["last_name"],
-        email=item["email"],
-        password=item["password"],
-        birth_date=item["birth_date"],
-        municipality=item["municipality"],
-        locality=item["locality"]
-    )
-    user.save()
-
-# SUBASTAS
-
-from auctions.models import Category, Auction
-from datetime import timedelta
-from django.utils import timezone
-from users.models import CustomUser
-
-# Crear o recuperar categorías
+# Crear categorías
 category_luxury, _ = Category.objects.get_or_create(name='lujo')
 category_sport, _ = Category.objects.get_or_create(name='deportivo')
 category_smart, _ = Category.objects.get_or_create(name='inteligente')
 category_vintage, _ = Category.objects.get_or_create(name='vintage')
 
-# Datos de relojes
-data = [
+# Crear o recuperar subastador
+auctioneer, _ = CustomUser.objects.get_or_create(
+    username="UsuarioDemo1",
+    defaults={
+        "first_name": "Demo",
+        "last_name": "User",
+        "email": "demo@nuevodemo.com",
+        "birth_date": "1990-01-01",
+        "municipality": "Madrid",
+        "locality": "Madrid",
+        "password": "demo123"
+    }
+)
+
+# Crear subastas (sin rating)
+subastas = [
     {
         "title": "Rolex Submariner",
         "description": "Icónico reloj de buceo con caja de acero inoxidable, bisel giratorio unidireccional y resistencia al agua de hasta 300 metros.",
         "price": 10500,
-        "rating": 4.9,
         "stock": 3,
         "brand": "Rolex",
         "category": category_luxury,
-        "thumbnail": "https://www.rolex.com/content/dam/rolexcom/products/watch-assets/m126610ln-0001/model-page/front_face_landscape.jpg"
+        "thumbnail": "https://media.gettyimages.com/id/1921982579/es/foto/leigh-on-sea-england-a-second-hand-rolex-oyster-perpetual-submariner-date-watch-is-displayed.jpg?s=612x612&w=0&k=20&c=rWa9NS1IN8fIihpt2ikPpLZ9yd9KZBhfmWfG4ioOAos="
     },
     {
         "title": "Omega Speedmaster Moonwatch",
         "description": "Reloj legendario que acompañó a los astronautas en la Luna. Cronógrafo de cuerda manual con cristal hesalite.",
         "price": 6500,
-        "rating": 4.8,
         "stock": 5,
         "brand": "Omega",
         "category": category_luxury,
-        "thumbnail": "https://www.omegawatches.com/media/catalog/product/o/m/omega-speedmaster-moonwatch-professional-chronograph-42-mm-31030425001001-l.png"
+        "thumbnail": "https://www.omegawatches.com/assets/moonwatch/assets/images/hero/background-m.jpg"
     },
     {
         "title": "Garmin Fenix 7X Pro",
         "description": "Reloj multideporte con GPS, mapas topográficos, sensor de pulso y linterna LED integrada. Ideal para deportes extremos.",
         "price": 899,
-        "rating": 4.7,
         "stock": 10,
         "brand": "Garmin",
         "category": category_sport,
-        "thumbnail": "https://m.media-amazon.com/images/I/71VXzI1wNwL._AC_UF1000,1000_QL80_.jpg"
+        "thumbnail": "https://res.garmin.com/en/products/010-02778-11/v/cf-lg.jpg"
     },
     {
         "title": "Apple Watch Series 9",
         "description": "Pantalla Retina Always-On, chip S9, sensor de oxígeno en sangre, ECG, y compatibilidad con entrenamiento y salud.",
         "price": 529,
-        "rating": 4.8,
         "stock": 20,
         "brand": "Apple",
         "category": category_smart,
-        "thumbnail": "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-series-9-aluminum-midnight-nc-45?wid=2000&hei=2000&fmt=jpeg&qlt=95&.v=1693346851333"
+        "thumbnail": "https://es.etoren.com/upload/images/0.93516100_1695769835_apple-watch-series-9-gps-45mm-midnight-aluminium-case-with-midnight-sport-loop.jpg"
     },
     {
         "title": "Samsung Galaxy Watch6 Classic",
         "description": "Reloj inteligente con diseño clásico, pantalla Super AMOLED, sensor de frecuencia cardiaca y compatibilidad con Android.",
         "price": 419,
-        "rating": 4.6,
         "stock": 15,
         "brand": "Samsung",
         "category": category_smart,
-        "thumbnail": "https://images.samsung.com/is/image/samsung/p6pim/es/2307/gallery/es-galaxy-watch6-classic-r950-465134-sm-r950nzkaeue-thumb-537716359"
+        "thumbnail": "https://m.media-amazon.com/images/I/71klCnd2v3L._AC_UF1000,1000_QL80_.jpg"
     },
     {
         "title": "Casio G-Shock GA-2100",
         "description": "Reloj analógico-digital ultra resistente, con diseño delgado y batería de larga duración. Resistente a impactos y agua.",
         "price": 129,
-        "rating": 4.7,
         "stock": 25,
         "brand": "Casio",
         "category": category_sport,
-        "thumbnail": "https://m.media-amazon.com/images/I/81cZ8tH2luL._AC_UY1000_.jpg"
+        "thumbnail": "https://cdn.laroyale.nl/B161lIZ0mxFGy5tDwT1T5X6BI-ZsVi0Mf7o9bK4OXd4/resize:fit:700:700/quality:90/aHR0cHM6Ly93d3cubGFyb3lhbGUubmwvbWVkaWEvY2F0YWxvZy9wcm9kdWN0Ly9nL2EvZ2EtMjEwMC0xYWVyX2Zyb250X3RpbHRlZF93ZWIuanBn.webp"
     },
     {
         "title": "Seiko 5 SNK809",
         "description": "Reloj automático con estilo militar, caja de acero inoxidable, correa de nylon y resistencia al agua hasta 30m.",
         "price": 99,
-        "rating": 4.5,
         "stock": 30,
         "brand": "Seiko",
         "category": category_vintage,
-        "thumbnail": "https://m.media-amazon.com/images/I/81m0zFODQtL._AC_UX679_.jpg"
-    },
+        "thumbnail": "https://preview.redd.it/seiko-snk809-switching-back-to-an-automatic-movement-field-v0-nq2kkwzw5urc1.jpg?width=640&crop=smart&auto=webp&s=7de51d0d4b7bceab1bf77f6238e0977ac0b84b31"
+    }
 ]
 
-# Obtener usuario subastador
-auctioneer = CustomUser.objects.get(username="UsuarioDemo1")
-
-# Crear subastas
-for item in data:
+for s in subastas:
     Auction.objects.create(
-        title=item["title"],
-        description=item["description"],
-        price=item["price"],
-        rating=item["rating"],
-        stock=item["stock"],
-        brand=item["brand"],
-        category=item["category"],
-        thumbnail=item["thumbnail"],
+        **s,
         closing_date=timezone.now() + timedelta(days=30),
         creation_date=timezone.now(),
         auctioneer=auctioneer
     )
 
-
+# Crear pujas
 pruebas2 = CustomUser.objects.get(username="UsuarioNuevo1")
 pruebas3 = CustomUser.objects.get(username="UsuarioNuevo2")
 
-# Asignar pujas del usuario Pruebas2
 Bid.objects.create(auction=Auction.objects.get(id=1), user=pruebas2, amount=500)
 Bid.objects.create(auction=Auction.objects.get(id=2), user=pruebas2, amount=650)
 Bid.objects.create(auction=Auction.objects.get(id=3), user=pruebas2, amount=900)
 
-# Asignar pujas del usuario Pruebas3
 Bid.objects.create(auction=Auction.objects.get(id=2), user=pruebas3, amount=700)
 Bid.objects.create(auction=Auction.objects.get(id=3), user=pruebas3, amount=950)
 Bid.objects.create(auction=Auction.objects.get(id=4), user=pruebas3, amount=1200)
-
-

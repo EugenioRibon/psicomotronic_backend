@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Auction, Category, Bid
+from .models import Auction, Category, Bid,Rating,Comment
 from django.utils import timezone
 from datetime import timedelta
     
@@ -14,6 +14,7 @@ class AuctionListCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Auction
         fields = '__all__'
+        read_only_fields = ['auctioneer'] 
 
     def get_isOpen(self, obj):
         return obj.closing_date > timezone.now()
@@ -46,23 +47,25 @@ class AuctionListCreateSerializer(serializers.ModelSerializer):
         return data
 
 class AuctionDetailSerializer(serializers.ModelSerializer):
-
-    ''' para ver detalles (GET /subastas/<id>/), actualizar o eliminar. '''
-
     creation_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     closing_date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ")
     isOpen = serializers.SerializerMethodField(read_only=True)
-    category = serializers.CharField(source="category.name", read_only=True) # Para mostrar la categoria en el detalle de la subasta
+    category = serializers.CharField(source="category.name", read_only=True)
+    average_rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Auction
         fields = [
-            "id", "title", "description", "price", "rating", "stock", "brand",
+            "id", "title", "description", "price", "average_rating", "stock", "brand",
             "thumbnail", "creation_date", "closing_date", "isOpen", "category"
         ]
 
     def get_isOpen(self, obj):
         return obj.closing_date > timezone.now()
+
+    def get_average_rating(self, obj):
+        return obj.average_rating
+
     
 class CategoryListCreateSerializer(serializers.ModelSerializer):
 
@@ -77,7 +80,6 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class BidListCreateSerializer(serializers.ModelSerializer):
-    # created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
 
     class Meta:
         model = Bid
@@ -99,3 +101,32 @@ class BidDetailSerializer(serializers.ModelSerializer):
         model = Bid
         fields = ['id', 'auction', 'user', 'amount', 'timestamp']
         read_only_fields = ['id', 'auction', 'user', 'timestamp']
+        
+        
+
+
+class RatingListCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = '__all__'
+
+    def validate_value(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("El valor debe estar entre 1 y 5.")
+        return value
+
+# serializers.py
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source='user.username', read_only=True)
+
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'title', 'content', 'created_at', 'updated_at', 'user', 'auction']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user', 'auction']
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        validated_data['auction_id'] = self.context['view'].kwargs['auction_id']
+        return super().create(validated_data)
